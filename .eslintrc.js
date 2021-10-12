@@ -10,8 +10,6 @@ module.exports = {
     "standard",
     "plugin:prettier/recommended",
     "plugin:node/recommended",
-    "react-app",
-    "react-app/jest",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -24,11 +22,5 @@ module.exports = {
     ],
     "no-process-exit": "off",
     "node/no-process-exit": "error",
-  },
-  settings: {
-    node: {
-      resolvePaths: [__dirname],
-      tryExtensions: [".tsx", ".ts", ".js", ".json", ".node"],
-    },
   },
 };
