@@ -1,27 +1,24 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const [owner, randomPerson] = await ethers.getSigners();
   const waveContractFactory = await ethers.getContractFactory("WavePortal");
-  const waveContract = await waveContractFactory.deploy();
+  const waveContract = await waveContractFactory.deploy({
+    value: ethers.utils.parseEther("0.1"),
+  });
   await waveContract.deployed();
-
   console.log("Contract deployed to:", waveContract.address);
-  console.log("Contract deployed by:", owner.address);
 
-  await waveContract.getTotalWaves();
+  let contractBalance = await ethers.provider.getBalance(waveContract.address);
+  console.log("Contract balance: ", ethers.utils.formatEther(contractBalance));
 
-  let waveTxn = await waveContract.wave();
+  const waveTxn = await waveContract.wave("A message!");
   await waveTxn.wait();
 
-  await waveContract.getTotalWaves();
-  await waveContract.getWaveCount(owner.address);
+  contractBalance = await ethers.provider.getBalance(waveContract.address);
+  console.log("Contract balance: ", ethers.utils.formatEther(contractBalance));
 
-  waveTxn = await waveContract.connect(randomPerson).wave();
-  await waveTxn.wait();
-
-  await waveContract.getTotalWaves();
-  await waveContract.getWaveCount(randomPerson.address);
+  const allWaves = await waveContract.getAllWaves();
+  console.log(allWaves);
 }
 
 async function runMain() {

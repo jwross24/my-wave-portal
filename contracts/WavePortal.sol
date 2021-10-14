@@ -8,29 +8,48 @@ contract WavePortal {
     uint256 private totalWaves;
     mapping (address => uint256) private waverToWaveCount;
 
-    constructor() {
+    event NewWave(address indexed from, string message, uint256 blockNumber);
+
+    struct Wave {
+        address waver;
+        string message;
+        uint256 blockNumber;
+    }
+
+    Wave[] private waves;
+
+    constructor() payable {
         console.log("Hey, I'm a smart contract! Nice to meet you.");
     }
 
-    function wave() public {
+    function wave(string memory _message) public {
         totalWaves++;
         waverToWaveCount[msg.sender]++;
         console.log("%s has waved!", msg.sender);
+
+        waves.push(Wave(msg.sender, _message, block.number));
+
+        emit NewWave(msg.sender, _message, block.number);
+
+        uint256 prizeAmount = 0.0001 ether;
+        require(
+            prizeAmount <= address(this).balance,
+            "Contract balance is too low."
+        );
+        payable(msg.sender).transfer(prizeAmount);
+    }
+
+    function getAllWaves() public view returns (Wave[] memory) {
+        return waves;
     }
 
     function getTotalWaves() public view returns (uint256) {
-        string memory waveModifier = getWaveModifierString(totalWaves);
-        console.log("We have %d total wave%s!", totalWaves, waveModifier);
+        console.log("We have %d total waves!", totalWaves);
         return totalWaves;
     }
 
     function getWaveCount(address _address) public view returns (uint256) {
-        string memory waveModifier = getWaveModifierString(waverToWaveCount[msg.sender]);
-        console.log("%s has %d wave%s!",  msg.sender, waverToWaveCount[msg.sender], waveModifier);
+        console.log("%s has %d waves!",  msg.sender, waverToWaveCount[msg.sender]);
         return waverToWaveCount[_address];
-    }
-
-    function getWaveModifierString(uint256 _waves) private pure returns (string memory) {
-        return _waves == 1 ? "" : "s";
     }
 }
