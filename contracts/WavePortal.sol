@@ -7,6 +7,7 @@ import "hardhat/console.sol";
 contract WavePortal {
     uint256 private totalWaves;
     mapping (address => uint256) private waverToWaveCount;
+    uint256 private seed;
 
     event NewWave(address indexed from, string message, uint256 blockNumber);
 
@@ -18,25 +19,40 @@ contract WavePortal {
 
     Wave[] private waves;
 
+    mapping(address => uint256) public lastWavedAt;
+
     constructor() payable {
         console.log("Hey, I'm a smart contract! Nice to meet you.");
     }
 
     function wave(string memory _message) public {
+        require(lastWavedAt[msg.sender] + 15 minutes < block.timestamp, "Wait 15m");
+
+        lastWavedAt[msg.sender] = block.timestamp;
+        
         totalWaves++;
         waverToWaveCount[msg.sender]++;
         console.log("%s has waved!", msg.sender);
 
         waves.push(Wave(msg.sender, _message, block.number));
 
-        emit NewWave(msg.sender, _message, block.number);
+        uint256 randomNumber = uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp, seed))) % 100;
+        console.log("Random # generated: %s", randomNumber);
 
-        uint256 prizeAmount = 0.0001 ether;
-        require(
-            prizeAmount <= address(this).balance,
-            "Contract balance is too low."
-        );
-        payable(msg.sender).transfer(prizeAmount);
+        seed = randomNumber;
+
+        if (randomNumber < 50) {
+            console.log("%s won!", msg.sender);
+
+            uint256 prizeAmount = 0.0001 ether;
+            require(
+                prizeAmount <= address(this).balance,
+                "Contract balance is too low."
+            );
+            payable(msg.sender).transfer(prizeAmount);
+        }
+
+        emit NewWave(msg.sender, _message, block.number);
     }
 
     function getAllWaves() public view returns (Wave[] memory) {
